@@ -14,6 +14,15 @@ public class Character : MonoBehaviour
     public float jumpForce;
     float currJumpForce;
     public float jumpAcceleration;
+
+    public float groundedDelayValue = 2.0f;
+    public float groundedDelay;
+
+    public int groundedDelayIncrValue;
+    public int groundedDelayIncr;
+
+    public Vector2 perp;
+    public Vector2 opposite;
     [Header("Booleans States")]
     public bool isGrounded;
     public bool isChargingJump;
@@ -22,12 +31,27 @@ public class Character : MonoBehaviour
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
+        groundedDelay = groundedDelayValue;
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        /*if (!isGrounded)
+        {
+            groundedDelay -= Time.deltaTime;
+        }
+        if(groundedDelay <= 0)
+        {
+            rb.velocity = Physics2D.gravity;
+            groundedDelayIncr++;
+            groundedDelay = groundedDelayValue;
+        }
+        if(groundedDelayIncr >= groundedDelayIncrValue)
+        {
+            transform.position = Physics2D.ClosestPoint(transform.position, GetComponent<CustomGravity>().nearest.GetComponent<BoxCollider2D>());
+            groundedDelayIncr = 0;
+        }*/
         Jump();
         Move();
         if (Input.GetKeyDown(KeyCode.R))
@@ -39,6 +63,8 @@ public class Character : MonoBehaviour
     {
         if (isGrounded)
         {
+            opposite = -GetComponent<CustomGravity>().dirGravity;
+            opposite.Normalize();
             if (Input.GetKey("space"))
             {
                 isChargingJump = true;
@@ -47,10 +73,17 @@ public class Character : MonoBehaviour
             if (Input.GetKeyUp("space"))
             {
                 isChargingJump = false;
-                rb.velocity = new Vector2(rb.velocity.x, currJumpForce);
+                
+                rb.velocity += opposite * currJumpForce;
+                Debug.Log(opposite);
+                //rb.velocity = new Vector2(rb.velocity.x, Mathf.Sqrt(-Physics2D.gravity.y *currJumpForce));
                 currJumpForce = 0;
             }
         }
+    }
+
+    private void FixedUpdate()
+    {
     }
     private void Move()
     {
@@ -58,20 +91,27 @@ public class Character : MonoBehaviour
         {
             if (Input.GetAxis("Horizontal") < 0)
             {
+                perp = new Vector2(Physics2D.gravity.y, -Physics2D.gravity.x);
+
+                //FLIP X
+                if (gameObject.transform.localScale.x > 0)
+                {
+                    Vector3 sca = new Vector3(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y, gameObject.transform.localScale.z);
+                    gameObject.transform.localScale = sca;
+                }
+                speed = Mathf.Abs(Mathf.Clamp((speed + (Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration)) , -maxSpeed, maxSpeed));
+            }else if(Input.GetAxis("Horizontal") > 0)
+            {
+                perp = new Vector2(-Physics2D.gravity.y, Physics2D.gravity.x);
+
+                //FLIP X
                 if (gameObject.transform.localScale.x < 0)
                 {
                     Vector3 sca = new Vector3(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y, gameObject.transform.localScale.z);
                     gameObject.transform.localScale = sca;
                 }
-                speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration) , -maxSpeed, maxSpeed);
-            }else if(Input.GetAxis("Horizontal") > 0)
-            {
-                if(gameObject.transform.localScale.x > 0)
-                {
-                    Vector3 sca = new Vector3(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y, gameObject.transform.localScale.z);
-                    gameObject.transform.localScale = sca;
-                }
-                speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration), -maxSpeed, maxSpeed);
+                speed = Mathf.Abs(Mathf.Clamp((speed + (Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration)), -maxSpeed, maxSpeed));
+                
             }
             else
             {
@@ -84,22 +124,44 @@ public class Character : MonoBehaviour
                     speed = Mathf.Clamp(speed + Time.deltaTime * deceleration, speed, 0);
                 }
             }
-            rb.velocity = new Vector2(speed, rb.velocity.y);
+            perp.Normalize();
+            if (perp.x != 0)
+            {
+                rb.velocity = new Vector2(perp.x * speed, rb.velocity.y);
+            }
+            else if(perp.y != 0)
+            {
+                rb.velocity = new Vector2(rb.velocity.x, perp.y * speed);
+            }
         }
     }
 
     private void OnCollisionEnter2D(Collision2D c)
     {
-        if (c.gameObject.CompareTag("Ground"))
+        if (c.gameObject.CompareTag("Ground") || c.gameObject.CompareTag("GravityWall"))
+        {
+            isGrounded = true;
+        }
+    }
+    private void OnCollisionStay2D(Collision2D c)
+    {
+        if (c.gameObject.CompareTag("Ground") || c.gameObject.CompareTag("GravityWall"))
         {
             isGrounded = true;
         }
     }
     private void OnCollisionExit2D(Collision2D c)
     {
-        if (c.gameObject.CompareTag("Ground"))
+        if (c.gameObject.CompareTag("Ground") || c.gameObject.CompareTag("GravityWall"))
         {
             isGrounded = false;
         }
+    }
+
+    private void OnGUI()
+    {
+        GUILayout.Label(" Velocity = " + rb.velocity);
+        GUILayout.Label(" perp = " + perp);
+        GUILayout.Label(" Speed = " + speed);
     }
 }

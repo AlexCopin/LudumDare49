@@ -4,12 +4,15 @@ using UnityEngine;
 
 public class CamScript : MonoBehaviour
 {
+
     public GameObject player;
     public static CamScript cam;
-    public float camY;
+    public float offsetY;
     public Vector2 countBefRota;
-    public float currentCount;
-    public int targetAngle;
+    [SerializeField]
+    float currentCount;
+    [SerializeField]
+    int targetAngle;
     public AnimationCurve animCurve;
     public List<GameObject> allPlatforms;
     public bool camMoving;
@@ -27,6 +30,7 @@ public class CamScript : MonoBehaviour
     }
     void Start()
     {
+        //
         player = GameObject.Find("Player");
         currentCount = Random.Range(countBefRota.x, countBefRota.y);
         targetAngle = Random.Range(-145, 145);
@@ -38,7 +42,7 @@ public class CamScript : MonoBehaviour
         Vector2 velo = Vector3.zero;
         float camX;
         camX = Vector2.SmoothDamp(transform.position, player.transform.position, ref velo, 0.05f).x;
-        transform.position = new Vector3(camX, camY, -10);
+        transform.position = new Vector3(camX, player.transform.position.y + offsetY, -10);
         if (camMoving)
         {
             currentCount -= Time.deltaTime;
@@ -47,6 +51,8 @@ public class CamScript : MonoBehaviour
                 CamRotation();
             }
         }
+        float angle = Vector2.SignedAngle(Vector2.down, player.GetComponent<CustomGravity>().dirGravity);
+        transform.rotation = Quaternion.Euler(new Vector3(0,0, angle));
     }
 
     private void CamRotation()
@@ -70,4 +76,5 @@ public class CamScript : MonoBehaviour
         }
         yield return 0;
     }
+
 }
