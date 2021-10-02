@@ -55,9 +55,9 @@ public class Character : MonoBehaviour
     {
         if (isGrounded)
         {
-            if (Input.GetAxisRaw("Horizontal") != 0)
+            if (Input.GetAxis("Horizontal") != 0)
             {
-                speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime) * acceleration, -maxSpeed, maxSpeed);
+                speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration) , -maxSpeed, maxSpeed);
             }
             else
             {

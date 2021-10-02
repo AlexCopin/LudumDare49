@@ -272,6 +272,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   camY: 0
+  countBefRota: {x: 10, y: 20}
+  currentCount: 0
 --- !u!20 &519420031
 Camera:
   m_ObjectHideFlags: 0
@@ -449,7 +451,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxSpeed: 5
   speed: 0
-  acceleration: 2
+  acceleration: 5
   deceleration: 6
   jumpForce: 7
   currJumpForce: 0
