@@ -8,11 +8,12 @@ public class Character : MonoBehaviour
     Rigidbody2D rb;
     [Header("Movements variables")]
     public float maxSpeed;
-    public float speed;
+    float speed;
     public float acceleration;
     public float deceleration;
     public float jumpForce;
-    public float currJumpForce;
+    float currJumpForce;
+    public float jumpAcceleration;
     [Header("Booleans States")]
     public bool isGrounded;
     public bool isChargingJump;
@@ -41,7 +42,7 @@ public class Character : MonoBehaviour
             if (Input.GetKey("space"))
             {
                 isChargingJump = true;
-                currJumpForce = Mathf.Clamp(currJumpForce + Time.deltaTime * jumpForce, 0, jumpForce);
+                currJumpForce = Mathf.Clamp(currJumpForce + Time.deltaTime * jumpAcceleration, jumpForce/2, jumpForce);
             }
             if (Input.GetKeyUp("space"))
             {
@@ -55,9 +56,22 @@ public class Character : MonoBehaviour
     {
         if (isGrounded)
         {
-            if (Input.GetAxis("Horizontal") != 0)
+            if (Input.GetAxis("Horizontal") < 0)
             {
+                if (gameObject.transform.localScale.x < 0)
+                {
+                    Vector3 sca = new Vector3(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y, gameObject.transform.localScale.z);
+                    gameObject.transform.localScale = sca;
+                }
                 speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration) , -maxSpeed, maxSpeed);
+            }else if(Input.GetAxis("Horizontal") > 0)
+            {
+                if(gameObject.transform.localScale.x > 0)
+                {
+                    Vector3 sca = new Vector3(gameObject.transform.localScale.x * -1, gameObject.transform.localScale.y, gameObject.transform.localScale.z);
+                    gameObject.transform.localScale = sca;
+                }
+                speed = Mathf.Clamp((speed + Input.GetAxisRaw("Horizontal") * Time.deltaTime * acceleration), -maxSpeed, maxSpeed);
             }
             else
             {
